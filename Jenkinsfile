@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub-credentials') // Use your credentials ID
-        REGISTRY = 'your-dockerhub-username'
+        DOCKERHUB_CREDENTIALS = credentials('shumet') // Use your credentials ID
+        REGISTRY = 'shumet'
         IMAGE_NAME = 'node-app'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
