@@ -1,26 +1,45 @@
-#!/usr/bin/env groovy
-
 pipeline {
+    agent any
 
-    agent {
-        docker {
-            image 'node'
-            args '-u root'
-        }
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub-credentials') // Use your credentials ID
+        REGISTRY = 'your-dockerhub-username'
+        IMAGE_NAME = 'node-app'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
-        stage('Build') {
+        stage('Checkout Code') {
             steps {
-                echo 'Building...'
-                sh 'npm install'
+                checkout scm
             }
         }
-        stage('Test') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Testing...'
-                sh 'npm test'
+                script {
+                    sh """
+                    docker build -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
+                    docker tag ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:latest
+                    """
+                }
             }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    sh """
+                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                    docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                    docker push ${REGISTRY}/${IMAGE_NAME}:latest
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs() // This works now as it's part of the pipeline's default node context
         }
     }
 }
