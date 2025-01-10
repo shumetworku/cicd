@@ -1,17 +1,20 @@
-# use the latest node LTS release
+# Use the latest node LTS release
 FROM node:gallium
+
+# Set working directory inside the container
 WORKDIR /usr/src/app
 
-# copy package.json and package-lock.json and install packages. we do this
-# separate from the application code to better use docker's caching
-# `npm install` will be cached on future builds if only the app code changed
+# Copy package.json and package-lock.json separately to optimize layer caching
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# copy the app
+# Copy the entire app after installing dependencies
 COPY . .
 
-# expose port 3000 and start the app
+# Expose port 3000
 EXPOSE 3000
-CMD [ "npm", "start" ]
 
+# Run the application
+CMD ["npm", "start"]
