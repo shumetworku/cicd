@@ -19,6 +19,32 @@ spec:
         image: shumet/node-app
         ports:
         - containerPort: 3000
-        env:
-        - name: NODE_ENV
-          value: "production"
+        envFrom:
+        - configMapRef:
+            name: node-app-config
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-app-config
+data:
+  NODE_ENV: production
