@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: node-app
-        image: https://hub.docker.com/repository/docker/shumet/node-app:latest
+        image: https://hub.docker.com/repository/docker/shumet/node-app
         ports:
         - containerPort: 3000
         env:
