@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: node-app
-        image: node:gallium
+        image: https://hub.docker.com/repository/docker/shumet/node-app:latest
         ports:
         - containerPort: 3000
         env:
