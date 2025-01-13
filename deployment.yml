@@ -16,16 +16,9 @@ spec:
     spec:
       containers:
       - name: node-app
-        image: https://hub.docker.com/repository/docker/shumet/node-app
+        image: shumet/node-app
         ports:
         - containerPort: 3000
         env:
         - name: NODE_ENV
           value: "production"
-        volumeMounts:
-        - name: app-volume
-          mountPath: /usr/src/app
-        command: ["npm", "start"]
-      volumes:
-      - name: app-volume
-        emptyDir: {}
