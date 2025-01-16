@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: todo-app-deployment
 spec:
-  replicas: 2
+  replicas: 3 # Define 3 pods
   selector:
     matchLabels:
       app: todo-app
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: todo-app
-        image: shumet/todo-app:latest
+        image: shumet/todo-app:latest # Replace with your Docker image
         ports:
         - containerPort: 3000
         readinessProbe:
