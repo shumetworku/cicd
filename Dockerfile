@@ -1,10 +1,10 @@
-# Use the latest node LTS release
-FROM node:gallium
+# Use the latest Node.js LTS image
+FROM node:lts
 
 # Set working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json separately to optimize layer caching
+# Copy package.json and package-lock.json separately to leverage layer caching
 COPY package*.json ./
 
 # Install dependencies
@@ -16,5 +16,5 @@ COPY . .
 # Expose port 3000
 EXPOSE 3000
 
-# Run the application
+# Start the application
 CMD ["npm", "start"]
