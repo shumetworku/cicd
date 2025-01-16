@@ -9,5 +9,4 @@ spec:
     - protocol: TCP
       port: 3000
       targetPort: 3000
-      nodePort: 30001 # Exposing the app on NodePort 30001
-  type: NodePort
+  type: LoadBalancer # Expose the service externally with LoadBalancer
