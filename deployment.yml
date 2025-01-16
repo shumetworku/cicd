@@ -1,38 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: node-app-deployment
+  name: todo-app-deployment
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: node-app
+      app: todo-app
   template:
     metadata:
       labels:
-        app: node-app
+        app: todo-app
     spec:
       containers:
-      - name: node-app
-        image: shumet/node-app:latest # Ensure this image is up to date
+      - name: todo-app
+        image: shumet/todo-app:latest # Build and push this image after updates
         ports:
         - containerPort: 3000
         readinessProbe:
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 15 # Adjust based on your app's startup time
+          initialDelaySeconds: 10
           periodSeconds: 5
         livenessProbe:
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 30 # Adjust based on app stability
+          initialDelaySeconds: 20
           periodSeconds: 10
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "250m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
