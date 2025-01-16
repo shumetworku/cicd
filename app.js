@@ -2,44 +2,70 @@
 
 const Hapi = require('@hapi/hapi');
 
-// Configure the server to bind to 0.0.0.0 and use the PORT environment variable if set
-const server = Hapi.server({
-    host: '0.0.0.0', // Ensures the server is accessible from outside the container
-    port: process.env.PORT || 3000
-});
+// In-memory task storage
+const tasks = [];
 
-// Sample route
-const Hello = require('./lib/hello');
-server.route({
-    method: 'GET',
-    path: '/hello/{user}',
-    handler: (request, h) => {
-        const result = Hello(decodeURIComponent(request.params.user));
-        return result;
-    }
-});
+const init = async () => {
+    const server = Hapi.server({
+        host: '0.0.0.0', // Ensures accessibility from outside the container
+        port: process.env.PORT || 3000
+    });
 
-// Add a health-check route for probes
-server.route({
-    method: 'GET',
-    path: '/',
-    handler: (request, h) => {
-        return { status: 'ok' }; // Responds with a 200 OK status
-    }
-});
-
-// Start the server if the file is executed directly
-if (!module.parent) {
-    const startServer = async () => {
-        try {
-            await server.start();
-            console.log(`Server running at: ${server.info.uri}`);
-        } catch (err) {
-            console.error(err);
-            process.exit(1);
+    // Health check route for probes
+    server.route({
+        method: 'GET',
+        path: '/',
+        handler: () => {
+            return { status: 'ok', message: 'Welcome to the To-Do API!' };
         }
-    };
-    startServer();
-}
+    });
 
-module.exports = server;
+    // Route to get all tasks
+    server.route({
+        method: 'GET',
+        path: '/tasks',
+        handler: () => {
+            return { tasks };
+        }
+    });
+
+    // Route to add a task
+    server.route({
+        method: 'POST',
+        path: '/tasks',
+        handler: (request) => {
+            const { title } = request.payload;
+            if (!title) {
+                return { error: 'Task title is required' };
+            }
+            const task = { id: tasks.length + 1, title, completed: false };
+            tasks.push(task);
+            return { message: 'Task added successfully', task };
+        }
+    });
+
+    // Route to mark a task as completed
+    server.route({
+        method: 'PATCH',
+        path: '/tasks/{id}',
+        handler: (request) => {
+            const id = parseInt(request.params.id);
+            const task = tasks.find((t) => t.id === id);
+            if (!task) {
+                return { error: 'Task not found' };
+            }
+            task.completed = true;
+            return { message: 'Task marked as completed', task };
+        }
+    });
+
+    await server.start();
+    console.log(`Server running at: ${server.info.uri}`);
+};
+
+process.on('unhandledRejection', (err) => {
+    console.error(err);
+    process.exit(1);
+});
+
+init();
