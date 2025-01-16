@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: node-app-deployment
-  labels:
-    app: node-app
 spec:
   replicas: 2
   selector:
@@ -16,24 +14,21 @@ spec:
     spec:
       containers:
       - name: node-app
-        image: shumet/node-app
+        image: shumet/node-app:latest # Ensure this image is up to date
         ports:
         - containerPort: 3000
-        envFrom:
-        - configMapRef:
-            name: node-app-config
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 5
         readinessProbe:
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 5
+          initialDelaySeconds: 15 # Adjust based on your app's startup time
           periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30 # Adjust based on app stability
+          periodSeconds: 10
         resources:
           requests:
             memory: "128Mi"
@@ -41,10 +36,3 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "500m"
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: node-app-config
-data:
-  NODE_ENV: production
