@@ -1,13 +1,16 @@
 'use strict';
 
 const Hapi = require('@hapi/hapi');
-const Server = Hapi.server({ // Corrected the initialization
-    host: 'localhost',
-    port: 3000
-});
-const Hello = require('./lib/hello');
 
-Server.route({
+// Configure the server to bind to 0.0.0.0 and use the PORT environment variable if set
+const server = Hapi.server({
+    host: '0.0.0.0', // Ensures the server is accessible from outside the container
+    port: process.env.PORT || 3000
+});
+
+// Sample route
+const Hello = require('./lib/hello');
+server.route({
     method: 'GET',
     path: '/hello/{user}',
     handler: (request, h) => {
@@ -16,18 +19,27 @@ Server.route({
     }
 });
 
-// Don't start the server if this file is required
+// Add a health-check route for probes
+server.route({
+    method: 'GET',
+    path: '/',
+    handler: (request, h) => {
+        return { status: 'ok' }; // Responds with a 200 OK status
+    }
+});
+
+// Start the server if the file is executed directly
 if (!module.parent) {
-    const start = async () => {
+    const startServer = async () => {
         try {
-            await Server.start();
-            console.log(`Server running at: ${Server.info.uri}`);
+            await server.start();
+            console.log(`Server running at: ${server.info.uri}`);
         } catch (err) {
             console.error(err);
             process.exit(1);
         }
     };
-    start();
+    startServer();
 }
 
-module.exports = Server;
+module.exports = server;
