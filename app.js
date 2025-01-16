@@ -1,71 +1,73 @@
 'use strict';
 
 const Hapi = require('@hapi/hapi');
+const os = require('os');
 
-// In-memory task storage
-const tasks = [];
-
-const init = async () => {
-    const server = Hapi.server({
-        host: '0.0.0.0', // Ensures accessibility from outside the container
-        port: process.env.PORT || 3000
-    });
-
-    // Health check route for probes
-    server.route({
-        method: 'GET',
-        path: '/',
-        handler: () => {
-            return { status: 'ok', message: 'Welcome to the To-Do API!' };
-        }
-    });
-
-    // Route to get all tasks
-    server.route({
-        method: 'GET',
-        path: '/tasks',
-        handler: () => {
-            return { tasks };
-        }
-    });
-
-    // Route to add a task
-    server.route({
-        method: 'POST',
-        path: '/tasks',
-        handler: (request) => {
-            const { title } = request.payload;
-            if (!title) {
-                return { error: 'Task title is required' };
-            }
-            const task = { id: tasks.length + 1, title, completed: false };
-            tasks.push(task);
-            return { message: 'Task added successfully', task };
-        }
-    });
-
-    // Route to mark a task as completed
-    server.route({
-        method: 'PATCH',
-        path: '/tasks/{id}',
-        handler: (request) => {
-            const id = parseInt(request.params.id);
-            const task = tasks.find((t) => t.id === id);
-            if (!task) {
-                return { error: 'Task not found' };
-            }
-            task.completed = true;
-            return { message: 'Task marked as completed', task };
-        }
-    });
-
-    await server.start();
-    console.log(`Server running at: ${server.info.uri}`);
-};
-
-process.on('unhandledRejection', (err) => {
-    console.error(err);
-    process.exit(1);
+const Server = new Hapi.Server({
+    host: '0.0.0.0', // Listen on all IP addresses (important for Kubernetes)
+    port: 3000
 });
 
-init();
+// Generate a random color for the pod
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+// Handler for the root path
+Server.route({
+    method: 'GET',
+    path: '/',
+    handler: function (request, h) {
+        const podName = os.hostname(); // Use the pod's hostname for uniqueness
+        const color = getRandomColor(); // Get a random color
+
+        return `
+            <html>
+                <head>
+                    <style>
+                        body {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0;
+                            background-color: #f0f0f0;
+                        }
+                        .circle {
+                            width: 150px;
+                            height: 150px;
+                            border-radius: 50%;
+                            background-color: ${color};
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            font-size: 24px;
+                            color: white;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="circle">
+                        ${podName}
+                    </div>
+                </body>
+            </html>
+        `;
+    }
+});
+
+if (!module.parent) {
+    Server.start((err) => {
+        if (err) {
+            throw err;
+        }
+        console.log(`Server running at: ${Server.info.uri}`);
+    });
+}
+
+module.exports = Server;
