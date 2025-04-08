@@ -1,20 +1,19 @@
-# Use the latest node LTS release
-FROM node:lts
+# Dockerfile
 
-# Set working directory inside the container
-WORKDIR /usr/src/app
+# base image
+FROM node:16.3.0-alpine
 
-# Copy package.json and package-lock.json separately to optimize layer caching
-COPY package*.json ./
+# create & set working directory
+RUN mkdir -p /usr/src
+WORKDIR /usr/src
 
-# Install dependencies
-RUN npm install
+# copy source files
+COPY . /usr/src
 
-# Copy the entire app after installing dependencies
-COPY . .
+# install dependencies
+RUN yarn install
 
-# Expose port 3000
+# start app
+RUN yarn build
 EXPOSE 3000
-
-# Run the application
-CMD ["node", "app.js"]
+CMD yarn start
